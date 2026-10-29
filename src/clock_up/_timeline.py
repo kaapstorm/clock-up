@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime, time, timedelta, tzinfo
 from pathlib import Path
 
 from clock_up._errors import (
@@ -100,3 +101,72 @@ def check_append(
     last_at = timeline.last_at
     if last_at is not None and at <= last_at:
         raise NotAfterLast(last_at)
+
+
+@dataclass(frozen=True)
+class Totals:
+    """Time clocked in each period, with the period starts used."""
+
+    month_start: datetime
+    prev_month_start: datetime
+    week_total: timedelta
+    month_total: timedelta
+    prev_month_total: timedelta
+
+
+def week_start(now: datetime, tz: tzinfo) -> datetime:
+    """The start of the week containing ``now``: Sunday 00:00 in ``tz``."""
+    local = now.astimezone(tz)
+    days_since_sunday = local.isoweekday() % 7  # Sunday is 7
+    day = local.date() - timedelta(days=days_since_sunday)
+    return datetime.combine(day, time()).replace(tzinfo=tz)
+
+
+def month_start(now: datetime, tz: tzinfo) -> datetime:
+    local = now.astimezone(tz)
+    return datetime(local.year, local.month, 1).replace(tzinfo=tz)
+
+
+def prev_month_start(now: datetime, tz: tzinfo) -> datetime:
+    return month_start(month_start(now, tz) - timedelta(days=1), tz)
+
+
+def time_in_window(
+    sessions: Sequence[Session],
+    start: datetime,
+    end: datetime,
+    now: datetime,
+) -> timedelta:
+    """Time clocked from ``start`` to ``end``; an open session runs to now."""
+    # Session instants are UTC, but the window ends may be period
+    # starts built in tz. Two datetimes with the same ZoneInfo subtract
+    # by wall clock, which is wrong across a DST change, so bring the
+    # window into UTC before comparing and subtracting.
+    window_start, window_end = start.astimezone(UTC), end.astimezone(UTC)
+    total = timedelta()
+    for session in sessions:
+        overlap_start = max(session.start, window_start)
+        overlap_end = min(session.end or now, window_end)
+        if overlap_end > overlap_start:
+            total += overlap_end - overlap_start
+    return total
+
+
+def totals(timeline: Timeline, now: datetime, tz: tzinfo) -> Totals:
+    week_begins = week_start(now, tz)
+    month_begins = month_start(now, tz)
+    prev_month_begins = prev_month_start(now, tz)
+    sessions = timeline.sessions
+    return Totals(
+        month_start=month_begins,
+        prev_month_start=prev_month_begins,
+        week_total=time_in_window(
+            sessions, start=week_begins, end=now, now=now
+        ),
+        month_total=time_in_window(
+            sessions, start=month_begins, end=now, now=now
+        ),
+        prev_month_total=time_in_window(
+            sessions, start=prev_month_begins, end=month_begins, now=now
+        ),
+    )
