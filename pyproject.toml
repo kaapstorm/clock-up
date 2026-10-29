@@ -33,6 +33,9 @@ classifiers = [
 ]
 dependencies = []
 
+[project.scripts]
+clk = "clock_up.__main__:main"
+
 [project.urls]
 Homepage = "https://github.com/kaapstorm/clock-up"
 Source = "https://github.com/kaapstorm/clock-up"
