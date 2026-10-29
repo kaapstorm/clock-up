@@ -49,6 +49,7 @@ dev = [
     "ruff",
     "testsweet",
     "ty",
+    "tzdata",
 ]
 
 [tool.ruff]
