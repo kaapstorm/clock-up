@@ -5,7 +5,7 @@ requires-python = ">=3.11, <3.15"
 [[package]]
 name = "clock-up"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [
