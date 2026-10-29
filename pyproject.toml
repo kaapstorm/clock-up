@@ -1,0 +1,26 @@
+[project]
+name = "clock-up"
+version = "0.1.0"
+description = "A minimalist command line utility for time tracking"
+readme = "README.md"
+requires-python = ">=3.11,<3.15"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Norman Hooper", email = "kaapstorm@gmail.com" },
+]
+
+[dependency-groups]
+dev = [
+    "ruff",
+    "testsweet",
+    "ty",
+]
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.testsweet.discovery]
+include_paths = ["src/clock_up/tests"]
