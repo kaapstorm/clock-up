@@ -39,6 +39,7 @@ clk = "clock_up.__main__:main"
 [project.urls]
 Homepage = "https://github.com/kaapstorm/clock-up"
 Source = "https://github.com/kaapstorm/clock-up"
+Changelog = "https://github.com/kaapstorm/clock-up/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]
